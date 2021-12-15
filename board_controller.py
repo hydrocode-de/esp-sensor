@@ -1,12 +1,22 @@
-from machine import Timer
+from machine import Timer, Pin
 import ujson as json
 from ble_controller import BleController
 import utime as time
+from urandom import choice
 
 import sensors
 
 
 __version__ = "1.0.0"
+
+# check if there is a device name
+try:
+    with open('.mac', 'r') as f:
+        MAC = f.read()
+except Exception:
+    MAC = ''.join([choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for _ in range(16)])
+    with open('.mac', 'w') as f:
+        f.write(MAC)
 
 # check if a config file exists
 try:
@@ -24,7 +34,7 @@ except Exception:
 
 class BoardController:
     """Board controller"""
-    def __init__(self, debug=False):
+    def __init__(self, debug=False, button_pin = 27):
         # initialze the bluetooth controller
         self.ble_controller = BleController(
             CONFIG.get('ble_name', 'Stupid Nameless Device'),
@@ -36,6 +46,9 @@ class BoardController:
 
         # initialize the timer
         self.timer = Timer(1)
+
+        # button
+        self.button = Pin(button_pin, Pin.IN)
 
         # set the debug flag
         self.debug = debug
@@ -54,7 +67,8 @@ class BoardController:
     def sense(self, irq_pin = None):
         """Send all configured data over BLE"""
         data = {
-            'firmware': __version__
+            'firmware': __version__,
+            '_id': MAC
         }
 
         # get all sensor names

@@ -60,15 +60,23 @@ class BleController:
         """BLE is connected, indicate by 3 fast green flashs"""
         self.timer.deinit()
 
-        color(rgb, 'off')
+        def connect_blink_green():  
+            color(rgb, 'off')
+            time.sleep_ms(200)
+            color(rgb, 'green')
+            time.sleep_ms(200)
+            color(rgb, 'off')
+
+        # connect blink
         for i in range(3):
-            toggleRGB(0, 'green')
-            time.sleep_ms(200)
-            toggleRGB(0, 'green')
-            time.sleep_ms(200)
+            connect_blink_green()
+        
+        # signaller
+        self.timer.init(period=60000, mode=Timer.PERIODIC, callback=connect_blink_green)
 
     def disconnected(self):
         """BLE is disconnected, indicate by flashing blue"""
+        self.timer.deinit()
         self.timer.init(period=500, mode=Timer.PERIODIC, callback=lambda p: toggleRGB(p, 'blue'))
 
     def irq(self, event, data):
