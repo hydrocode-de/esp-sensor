@@ -117,7 +117,7 @@ class BoardController:
         payload = json.loads(data)
         if 'config' in payload:
             if payload['config'] == 'get':
-                self.send(self.get_config())
+                self.send({'config': self.get_config()})
             else:
                 self.set_config(payload['config'])
 

@@ -8,7 +8,7 @@ rgb = NeoPixel(Pin(27), 1)
 
 
 # pre-define some colors
-COLORS = dict(red=(128, 0, 0), green=(0,128, 0), blue=(0,0,128), white=(128, 128, 128), off=(0,0,0))
+COLORS = dict(red=(128, 0, 0), green=(0,128, 0), blue=(0,0,128), white=(128, 128, 128), yellow=(128, 128, 0), off=(0,0,0))
 def color(neo, rgb):
     if isinstance(rgb, str):
         rgb = COLORS.get(rgb, (128, 128, 128))
@@ -37,9 +37,6 @@ class BleController:
         self.ble.active(True)
         self.status = 0
 
-        # on init, the device is disconnected
-        self.disconnected()
-
         # register the bluetooth interrupt
         self.ble.irq(self.irq)
 
@@ -52,15 +49,23 @@ class BleController:
         self.disconnect_callbacks = disconnect_callbacks
         self.write_callbacks = write_callbacks
 
+        for i in range(3):
+            toggleRGB(None, 'yellow')
+            time.sleep_ms(200)
+            toggleRGB(None, 'yellow')
+            time.sleep_ms(200)
+        
         if self.debug:
             print('[BLE Controller] initialized')
-
+        
+        # on init, the device is disconnected
+        self.disconnected()
 
     def connected(self):
         """BLE is connected, indicate by 3 fast green flashs"""
         self.timer.deinit()
 
-        def connect_blink_green():  
+        def connect_blink_green(pin):  
             color(rgb, 'off')
             time.sleep_ms(200)
             color(rgb, 'green')
@@ -69,7 +74,7 @@ class BleController:
 
         # connect blink
         for i in range(3):
-            connect_blink_green()
+            connect_blink_green(None)
         
         # signaller
         self.timer.init(period=60000, mode=Timer.PERIODIC, callback=connect_blink_green)
@@ -77,7 +82,7 @@ class BleController:
     def disconnected(self):
         """BLE is disconnected, indicate by flashing blue"""
         self.timer.deinit()
-        self.timer.init(period=500, mode=Timer.PERIODIC, callback=lambda p: toggleRGB(p, 'blue'))
+        self.timer.init(period=500, mode=Timer.PERIODIC, callback=toggleRGB)
 
     def irq(self, event, data):
         """The BLE received an interrupt. This can be a connect, disconnect or write event"""
