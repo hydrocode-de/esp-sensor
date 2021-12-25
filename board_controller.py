@@ -116,10 +116,12 @@ class BoardController:
         # check the payload
         payload = json.loads(data)
         if 'config' in payload:
-            if payload['config'] == 'get':
-                self.send({'config': self.get_config()})
-            else:
+
+            # check if there is an update
+            if payload['config'] != 'get':
                 self.set_config(payload['config'])
+            conf = json.dumps({'config': self.get_config()})
+            self.send(conf)
 
     def get_config(self):
         c = json.dumps(CONFIG)
