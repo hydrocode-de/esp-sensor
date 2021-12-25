@@ -150,3 +150,10 @@ class BleController:
         self.ble.gap_advertise(200, adv_data)
         if self.debug:
             print(adv_data)
+
+    def __del__(self):
+        # stop any kind of timer
+        self.timer.deinit()
+
+        # deactivate BLE
+        self.ble.active(False)
