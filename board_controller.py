@@ -26,9 +26,13 @@ except Exception:
     CONFIG = {
         'ble_name': 'Lass Mich',
         'notify_interval': 5000,
-        'sensors': [
-            {'name': 'random', '_func': 'random_integer', 'kwargs': {}}
-        ]
+        'sensors': {
+            'random': {
+                'name': 'random',
+                '_func': 'random_integer', 
+                'kwargs': {}
+            }
+        }
     }
 
 
@@ -120,6 +124,16 @@ class BoardController:
             # check if there is an update
             if payload['config'] != 'get':
                 self.set_config(payload['config'])
+            
+            conf = json.dumps({'config': self.get_config()})
+            self.send(conf)
+        
+        # handle sensor updates
+        if 'sensor' in payload:
+            # check if this is an update
+            if payload['sensor'] != 'get':
+                self.set_sensor(payload['sensor'])
+
             conf = json.dumps({'config': self.get_config()})
             self.send(conf)
 
@@ -133,6 +147,16 @@ class BoardController:
 
         # update config
         CONFIG.update(config)
+
+        with open('config.json', 'w') as f:
+            json.dump(CONFIG, f, indent=4)
+    
+    def set_sensor(self, sensor):
+        if isinstance(sensor, str):
+            sensor = json.loads(sensor)
+        
+        # update the sensor config
+        CONFIG['sensors'].update(sensor)
 
         with open('config.json', 'w') as f:
             json.dump(CONFIG, f, indent=4)
